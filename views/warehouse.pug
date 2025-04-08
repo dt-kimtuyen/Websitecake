@@ -1,0 +1,93 @@
+doctype html
+html(lang="vi")
+  head
+    meta(charset="UTF-8")
+    title Quản lý kho hàng
+    link(rel="stylesheet", href="/styles.css")
+  body
+    .container
+      h1 Quản lý kho hàng (Warehouse)
+      form#warehouseForm
+        input#warehouseId(type="hidden")
+        .form-group
+          label(for="productName") Tên sản phẩm:
+          input#productName(type="text", name="productName", required)
+        .form-group
+          label(for="quantity") Số lượng:
+          input#quantity(type="number", name="quantity", required)
+        .form-group
+          label(for="location") Vị trí kho:
+          input#location(type="text", name="location")
+        button(type="submit") Thêm vào kho
+
+      hr
+
+      h2 Danh sách kho
+      .warehouse-list
+
+    script(src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js")
+    script.
+      const form = document.getElementById("warehouseForm");
+      const list = document.querySelector(".warehouse-list");
+      const token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjU1YjExY2YyYjUwNmI3OGM0NzcyOSIsImlhdCI6MTc0NDEzMzE2NiwiZXhwIjoxNzQ0MTM2NzY2fQ.K9BBMKhnI8ITrhVFqMbkSUoKnwNqvsndbPhK3AwgJxk";
+      const api = "http://localhost:3000/api/warehouses";
+
+      async function loadWarehouse() {
+        const res = await axios.get(api);
+        list.innerHTML = "";
+        res.data.forEach(w => {
+          list.innerHTML += `
+            <div class="card">
+              <div><strong>${w.productName}</strong></div>
+              <div>Số lượng: ${w.quantity}</div>
+              <div>Vị trí: ${w.location || 'Không có'}</div>
+              <button onclick="editWarehouse('${w._id}', '${w.productName}', ${w.quantity}, '${w.location || ''}')">Sửa</button>
+              <button onclick="deleteWarehouse('${w._id}')">Xoá</button>
+            </div>
+          `;
+        });
+      }
+
+      function editWarehouse(id, productName, quantity, location) {
+        document.getElementById("warehouseId").value = id;
+        document.getElementById("productName").value = productName;
+        document.getElementById("quantity").value = quantity;
+        document.getElementById("location").value = location;
+        form.querySelector("button").textContent = "Cập nhật kho";
+      }
+
+      async function deleteWarehouse(id) {
+        if (confirm("Bạn có chắc muốn xoá mục này?")) {
+          await axios.delete(`${api}/${id}`, {
+            headers: { Authorization: token }
+          });
+          loadWarehouse();
+        }
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("warehouseId").value;
+        const productName = document.getElementById("productName").value;
+        const quantity = parseInt(document.getElementById("quantity").value);
+        const location = document.getElementById("location").value;
+
+        const data = { productName, quantity, location };
+
+        if (id) {
+          await axios.put(`${api}/${id}`, data, {
+            headers: { Authorization: token }
+          });
+        } else {
+          await axios.post(api, data, {
+            headers: { Authorization: token }
+          });
+        }
+
+        form.reset();
+        document.getElementById("warehouseId").value = "";
+        form.querySelector("button").textContent = "Thêm vào kho";
+        loadWarehouse();
+      });
+
+      loadWarehouse();

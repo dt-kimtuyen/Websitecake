@@ -1,0 +1,105 @@
+doctype html
+html(lang="vi")
+  head
+    meta(charset="UTF-8")
+    title Quản lý đơn hàng
+    link(rel="stylesheet", href="/styles.css")
+  body
+    .container
+      h1 Quản lý đơn hàng (Order)
+      form#orderForm
+        input#orderId(type="hidden")
+        .form-group
+          label(for="customer") Tên khách hàng:
+          input#customer(type="text", name="customer", required)
+        .form-group
+          label(for="products") Danh sách sản phẩm (phân cách bằng dấu phẩy):
+          input#products(type="text", name="products", required)
+        .form-group
+          label(for="total") Tổng tiền:
+          input#total(type="number", name="total", required)
+        .form-group
+          label(for="status") Trạng thái:
+          select#status(name="status")
+            option(value="pending") Chờ xử lý
+            option(value="processing") Đang xử lý
+            option(value="shipped") Đã giao hàng
+        button(type="submit") Tạo đơn hàng
+
+      hr
+
+      h2 Danh sách đơn hàng
+      .order-list
+
+    script(src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js")
+    script.
+      const orderForm = document.getElementById("orderForm");
+      const list = document.querySelector(".order-list");
+      const token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjU1YjExY2YyYjUwNmI3OGM0NzcyOSIsImlhdCI6MTc0NDEzMzE2NiwiZXhwIjoxNzQ0MTM2NzY2fQ.K9BBMKhnI8ITrhVFqMbkSUoKnwNqvsndbPhK3AwgJxk";
+      const api = "http://localhost:3000/api/orders";
+
+      async function loadOrders() {
+        const res = await axios.get(api);
+        list.innerHTML = "";
+        res.data.forEach(o => {
+          list.innerHTML += `
+            <div class="card">
+              <div><strong>Khách:</strong> ${o.customerName}</div>
+              <div><strong>Sản phẩm:</strong> ${o.products?.join(", ")}</div>
+              <div><strong>Tổng tiền:</strong> ${o.total?.toLocaleString()} VNĐ</div>
+              <div><strong>Trạng thái:</strong> ${o.status}</div>
+              <button onclick="editOrder('${o._id}', '${o.customerName}', '${o.products?.join(', ')}', ${o.total}, '${o.status}')">Sửa</button>
+              <button onclick="deleteOrder('${o._id}')">Xoá</button>
+            </div>
+          `;
+        });
+      }
+
+      function editOrder(id, customer, products, total, status) {
+        document.getElementById("orderId").value = id;
+        document.getElementById("customer").value = customer;
+        document.getElementById("products").value = products;
+        document.getElementById("total").value = total;
+        document.getElementById("status").value = status;
+        orderForm.querySelector("button").textContent = "Cập nhật đơn hàng";
+      }
+
+      async function deleteOrder(id) {
+        if (confirm("Bạn có chắc muốn xoá đơn hàng này không?")) {
+          await axios.delete(`${api}/${id}`, {
+            headers: { Authorization: token }
+          });
+          loadOrders();
+        }
+      }
+
+      orderForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("orderId").value;
+        const customerName = document.getElementById("customer").value;
+        const total = document.getElementById("total").value;
+        const status = document.getElementById("status").value;
+        const products = document.getElementById("products").value
+          .split(",")
+          .map(p => p.trim())
+          .filter(p => p);
+
+        const data = { customerName, total, status, products };
+
+        if (id) {
+          await axios.put(`${api}/${id}`, data, {
+            headers: { Authorization: token }
+          });
+        } else {
+          await axios.post(api, data, {
+            headers: { Authorization: token }
+          });
+        }
+
+        orderForm.reset();
+        document.getElementById("orderId").value = "";
+        orderForm.querySelector("button").textContent = "Tạo đơn hàng";
+        loadOrders();
+      });
+
+      loadOrders();

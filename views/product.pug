@@ -1,0 +1,96 @@
+doctype html
+html(lang="vi")
+  head
+    meta(charset="UTF-8")
+    title Trang quản lý sản phẩm
+    link(rel="stylesheet", href="/styles.css")
+  body
+    .container
+      h1 Quản lý sản phẩm
+      form#productForm(enctype="multipart/form-data")
+        input#productId(type="hidden")
+        .form-group
+          label(for="name") Tên sản phẩm:
+          input#name(type="text", name="name", required)
+        .form-group
+          label(for="price") Giá:
+          input#price(type="number", name="price", required)
+        .form-group
+          label(for="image") Ảnh sản phẩm:
+          input#image(type="file", name="image", accept="image/*")
+        button(type="submit") Thêm sản phẩm
+
+      hr
+
+      h2 Danh sách sản phẩm
+      .product-list
+
+    script(src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js")
+    script.
+      const form = document.getElementById("productForm");
+      const list = document.querySelector(".product-list");
+      const token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjU1YjExY2YyYjUwNmI3OGM0NzcyOSIsImlhdCI6MTc0NDEzMzE2NiwiZXhwIjoxNzQ0MTM2NzY2fQ.K9BBMKhnI8ITrhVFqMbkSUoKnwNqvsndbPhK3AwgJxk";
+      const api = "http://localhost:3000/api/products";
+
+      async function loadProducts() {
+        const res = await axios.get(api);
+        list.innerHTML = "";
+        res.data.forEach(p => {
+          list.innerHTML += `
+            <div class="card">
+              <img src="http://localhost:3000/uploads/${p.image}" />
+              <div><strong>${p.name}</strong></div>
+              <div>Giá: ${p.price.toLocaleString()} VNĐ</div>
+              <button onclick="editProduct('${p._id}', '${p.name}', ${p.price})">Sửa</button>
+              <button onclick="deleteProduct('${p._id}')">Xoá</button>
+            </div>
+          `;
+        });
+      }
+
+      async function deleteProduct(id) {
+        if (confirm("Bạn có chắc chắn muốn xoá sản phẩm này không?")) {
+          await axios.delete(`${api}/${id}`, {
+            headers: { Authorization: token }
+          });
+          loadProducts();
+        }
+      }
+
+      function editProduct(id, name, price) {
+        document.getElementById("productId").value = id;
+        document.getElementById("name").value = name;
+        document.getElementById("price").value = price;
+        form.querySelector("button").textContent = "Cập nhật sản phẩm";
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("productId").value;
+        const name = document.getElementById("name").value;
+        const price = document.getElementById("price").value;
+        const image = document.getElementById("image").files[0];
+        const formData = new FormData();
+        formData.append("name", name);
+        formData.append("price", price);
+        if (image) formData.append("image", image);
+
+        if (id) {
+          // Cập nhật sản phẩm
+          await axios.put(`${api}/${id}`, formData, {
+            headers: { Authorization: token }
+          });
+        } else {
+          // Thêm sản phẩm mới
+          await axios.post(api, formData, {
+            headers: { Authorization: token }
+          });
+        }
+
+        form.reset();
+        document.getElementById("productId").value = "";
+        form.querySelector("button").textContent = "Thêm sản phẩm";
+        loadProducts();
+      });
+
+      loadProducts();

@@ -1,0 +1,88 @@
+doctype html
+html(lang="vi")
+  head
+    meta(charset="UTF-8")
+    title Quản lý blog
+    link(rel="stylesheet", href="/styles.css")
+  body
+    .container
+      h1 Quản lý Blog
+      form#blogForm(enctype="multipart/form-data")
+        input#blogId(type="hidden")
+        .form-group
+          label(for="title") Tiêu đề:
+          input#title(type="text", name="title", required)
+        .form-group
+          label(for="content") Nội dung:
+          textarea#content(name="content", rows="3", required)
+        .form-group
+          label(for="image") Ảnh:
+          input#image(type="file", name="image", accept="image/*")
+        button(type="submit") Thêm blog
+
+      hr
+
+      h2 Danh sách blog
+      .blog-list
+
+    script(src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js")
+    script.
+      const blogForm = document.getElementById("blogForm");
+      const list = document.querySelector(".blog-list");
+      const token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjU1YjExY2YyYjUwNmI3OGM0NzcyOSIsImlhdCI6MTc0NDEzMzE2NiwiZXhwIjoxNzQ0MTM2NzY2fQ.K9BBMKhnI8ITrhVFqMbkSUoKnwNqvsndbPhK3AwgJxk";
+      const api = "http://localhost:3000/api/blogs";
+
+      async function loadBlogs() {
+        const res = await axios.get(api);
+        list.innerHTML = "";
+        res.data.forEach(b => {
+          list.innerHTML += `
+            <div class="card">
+              <img src="/uploads/${b.image}" />
+              <div><strong>${b.title}</strong></div>
+              <div>${b.content}</div>
+              <button onclick="editBlog('${b._id}', '${b.title}', \`${b.content}\`)" type="button">Sửa</button>
+              <button onclick="deleteBlog('${b._id}')" type="button">Xóa</button>
+            </div>
+          `;
+        });
+      }
+
+      function editBlog(id, title, content) {
+        document.getElementById("blogId").value = id;
+        document.getElementById("title").value = title;
+        document.getElementById("content").value = content;
+        blogForm.querySelector("button").textContent = "Cập nhật blog";
+      }
+
+      async function deleteBlog(id) {
+        if (confirm("Xóa blog này?")) {
+          await axios.delete(`${api}/${id}`, {
+            headers: { Authorization: token }
+          });
+          loadBlogs();
+        }
+      }
+
+      blogForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("blogId").value;
+        const formData = new FormData(blogForm);
+
+        if (id) {
+          await axios.put(`${api}/${id}`, formData, {
+            headers: { Authorization: token }
+          });
+        } else {
+          await axios.post(api, formData, {
+            headers: { Authorization: token }
+          });
+        }
+
+        blogForm.reset();
+        document.getElementById("blogId").value = "";
+        blogForm.querySelector("button").textContent = "Thêm blog";
+        loadBlogs();
+      });
+
+      loadBlogs();
