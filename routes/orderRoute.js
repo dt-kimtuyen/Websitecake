@@ -1,24 +1,13 @@
+// orderRoute.js
 const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
-const jwt = require('jsonwebtoken');
+const { verifyToken, isAdmin } = require('../middlewares/authorization');  // Import verifyToken từ authorization.js
 
-// Middleware xác thực
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(403).json({ message: 'Không có token' });
-
-  jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
-    if (err) return res.status(401).json({ message: 'Token không hợp lệ' });
-    req.user = user;
-    next();
-  });
-};
-
-router.get('/', orderController.getAllOrders);
-router.post('/', verifyToken, orderController.createOrder);
-router.put('/:id', verifyToken, orderController.updateOrder);
-router.delete('/:id', verifyToken, orderController.deleteOrder);
+// Các route cho Order với phân quyền Admin
+router.get('/', orderController.getAllOrders);  // Dành cho cả Admin và User
+router.post('/', verifyToken, isAdmin, orderController.createOrder);  // Chỉ Admin mới có quyền tạo
+router.put('/:id', verifyToken, isAdmin, orderController.updateOrder); // Chỉ Admin mới có quyền sửa
+router.delete('/:id', verifyToken, isAdmin, orderController.deleteOrder); // Chỉ Admin mới có quyền xóa
 
 module.exports = router;

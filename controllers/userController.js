@@ -2,22 +2,31 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Đăng ký
+const Role = require('../models/Role');  // Import mô hình Role
+
+
 exports.register = async (req, res) => {
     const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ message: 'Tên người dùng và mật khẩu không thể để trống' });
+    }
+
     try {
         const existingUser = await User.findOne({ username });
         if (existingUser) return res.status(400).json({ message: 'Tài khoản đã tồn tại' });
 
+        const defaultRole = await Role.findOne({ name: 'user' }); // Lấy role mặc định 'user'
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ username, password: hashedPassword });
-        await newUser.save();
+        const newUser = new User({ username, password: hashedPassword, role: defaultRole._id });
 
+        await newUser.save();
         res.status(201).json({ message: 'Đăng ký thành công' });
     } catch (err) {
-        res.status(500).json({ message: 'Lỗi server' });
+        console.error("Lỗi đăng ký:", err);
+        res.status(500).json({ message: 'Lỗi server khi đăng ký người dùng' });
     }
 };
+
 
 // Đăng nhập
 exports.login = async (req, res) => {

@@ -1,24 +1,13 @@
+// categoryRoute.js
 const express = require('express');
 const router = express.Router();
 const categoryController = require('../controllers/categoryController');
-const jwt = require('jsonwebtoken');
+const { verifyToken, isAdmin } = require('../middlewares/authorization');  // Import verifyToken từ file authorization.js
 
-// Middleware xác thực
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(403).json({ message: 'Không có token' });
-
-  jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
-    if (err) return res.status(401).json({ message: 'Token không hợp lệ' });
-    req.user = user;
-    next();
-  });
-};
-
+// Các route sử dụng verifyToken đã được import
 router.get('/', categoryController.getAllCategories);
-router.post('/', verifyToken, categoryController.createCategory);
-router.put('/:id', verifyToken, categoryController.updateCategory);
-router.delete('/:id', verifyToken, categoryController.deleteCategory);
+router.post('/', verifyToken,isAdmin, categoryController.createCategory);  // Sử dụng middleware verifyToken
+router.put('/:id', verifyToken,isAdmin, categoryController.updateCategory); // Sử dụng middleware verifyToken
+router.delete('/:id', verifyToken,isAdmin, categoryController.deleteCategory); // Sử dụng middleware verifyToken
 
-module.exports = router;
+module.exports = router;  // Xuất router để sử dụng trong file app.js hoặc các route khác

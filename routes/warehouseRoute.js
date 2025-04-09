@@ -1,24 +1,13 @@
+// warehouseRoute.js
 const express = require('express');
 const router = express.Router();
 const warehouseController = require('../controllers/warehouseController');
-const jwt = require('jsonwebtoken');
+const { verifyToken, isAdmin } = require('../middlewares/authorization');  // Import verifyToken và isAdmin từ authorization.js
 
-// Middleware xác thực
-const verifyToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) return res.status(403).json({ message: 'Không có token' });
+// Các route cho Warehouse với phân quyền Admin
+router.get('/', warehouseController.getAllWarehouses);  // Dành cho cả Admin và User
+router.post('/', verifyToken, isAdmin, warehouseController.createWarehouse);  // Chỉ Admin mới có quyền tạo
+router.put('/:id', verifyToken, isAdmin, warehouseController.updateWarehouse); // Chỉ Admin mới có quyền sửa
+router.delete('/:id', verifyToken, isAdmin, warehouseController.deleteWarehouse); // Chỉ Admin mới có quyền xóa
 
-  jwt.verify(token, process.env.SECRET_KEY, (err, user) => {
-    if (err) return res.status(401).json({ message: 'Token không hợp lệ' });
-    req.user = user;
-    next();
-  });
-};
-
-router.get('/', warehouseController.getAllWarehouses);
-router.post('/', verifyToken, warehouseController.createWarehouse);
-router.put('/:id', verifyToken, warehouseController.updateWarehouse);
-router.delete('/:id', verifyToken, warehouseController.deleteWarehouse);
-
-module.exports = router;
+module.exports = router;  // Xuất router để sử dụng trong file app.js hoặc các route khác

@@ -2,25 +2,24 @@ const Role = require('../models/Role');
 
 // Tạo mới Role
 exports.createRole = async (req, res) => {
-  const { name, description, permissions } = req.body;
+  const { name, description } = req.body;
 
   try {
-    // Kiểm tra xem role đã tồn tại chưa
-    const existingRole = await Role.findOne({ name });
-    if (existingRole) return res.status(400).json({ message: 'Role đã tồn tại' });
+      // Kiểm tra xem role đã tồn tại chưa
+      const existingRole = await Role.findOne({ name });
+      if (existingRole) return res.status(400).json({ message: 'Role đã tồn tại' });
 
-    // Tạo role mới
-    const newRole = new Role({
-      name,
-      description,
-      permissions
-    });
+      // Tạo role mới
+      const newRole = new Role({
+          name,
+          description
+      });
 
-    await newRole.save();
-    res.status(201).json({ message: 'Role tạo thành công', newRole });
+      await newRole.save();
+      res.status(201).json({ message: 'Role tạo thành công', newRole });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Lỗi server khi tạo role' });
+      console.error(error);
+      res.status(500).json({ message: 'Lỗi server khi tạo role' });
   }
 };
 
@@ -54,12 +53,12 @@ exports.getRoleById = async (req, res) => {
 // Cập nhật role theo ID
 exports.updateRole = async (req, res) => {
   const { id } = req.params;
-  const { name, description, permissions } = req.body;
+  const { name, description } = req.body;
 
   try {
     const updatedRole = await Role.findByIdAndUpdate(
       id,
-      { name, description, permissions },
+      { name, description },
       { new: true }
     );
 

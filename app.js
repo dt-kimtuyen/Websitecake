@@ -39,6 +39,7 @@ app.use('/api/orders', require('./routes/orderRoute'));
 app.use('/api/feedbacks', require('./routes/feedbackRoute'));
 app.use('/api/warehouses', require('./routes/warehouseRoute'));
 app.use('/api/blogs', require('./routes/blogRoute'));
+app.use('/api/roles', require('./routes/roleRoute'));
 
 // Khởi động server
 const PORT = process.env.PORT || 3000;
