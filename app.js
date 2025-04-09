@@ -3,7 +3,14 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 
+
+const Category = require('./models/Category');
+const Product = require('./models/Product');
+
+const homeRoutes = require('./routes/homeRoutes');
 const app = express();
+
+
 
 // Middleware
 app.use(cors());
@@ -20,6 +27,20 @@ mongoose.connect('mongodb://localhost:27017/websiteflow')
   .catch((err) => console.log("Lỗi kết nối MongoDB:", err));
 
 
+  // Route để hiển thị trang chủ với danh mục và sản phẩm
+app.get('/', async (req, res) => {
+  try {
+    // Lấy danh mục và sản phẩm từ cơ sở dữ liệu
+    const categories = await Category.find({});
+    const products = await Product.find({});
+
+    // Truyền danh mục và sản phẩm vào view
+    res.render('index', { categories, products });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Lỗi khi lấy dữ liệu');
+  }
+});
 // UI Routes (Giao diện)
 app.get('/', (req, res) => res.render('index'));
 app.get('/login-ui', (req, res) => res.render('login'));
@@ -40,6 +61,8 @@ app.use('/api/feedbacks', require('./routes/feedbackRoute'));
 app.use('/api/warehouses', require('./routes/warehouseRoute'));
 app.use('/api/blogs', require('./routes/blogRoute'));
 app.use('/api/roles', require('./routes/roleRoute'));
+
+app.use('/', homeRoutes);
 
 // Khởi động server
 const PORT = process.env.PORT || 3000;
