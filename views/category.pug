@@ -1,0 +1,79 @@
+doctype html
+html(lang="vi")
+  head
+    meta(charset="UTF-8")
+    title Quản lý danh mục
+    link(rel="stylesheet", href="/styles.css")
+  body
+    .container
+      h1 Quản lý danh mục (Category)
+      form#categoryForm
+        input#categoryId(type="hidden")
+        .form-group
+          label(for="name") Tên danh mục:
+          input#name(type="text", name="name", required)
+        button(type="submit") Thêm danh mục
+
+      hr
+
+      h2 Danh sách danh mục
+      .category-list
+
+    script(src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js")
+    script.
+      const categoryForm = document.getElementById("categoryForm");
+      const list = document.querySelector(".category-list");
+      const token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3ZjU1YjExY2YyYjUwNmI3OGM0NzcyOSIsImlhdCI6MTc0NDEzMzE2NiwiZXhwIjoxNzQ0MTM2NzY2fQ.K9BBMKhnI8ITrhVFqMbkSUoKnwNqvsndbPhK3AwgJxk";
+      const api = "http://localhost:3000/api/categories";
+
+      async function loadCategories() {
+        const res = await axios.get(api);
+        list.innerHTML = "";
+        res.data.forEach(c => {
+          list.innerHTML += `
+            <div class="card">
+              <div><strong>${c.name}</strong></div>
+              <button onclick="editCategory('${c._id}', '${c.name}')">Sửa</button>
+              <button onclick="deleteCategory('${c._id}')">Xoá</button>
+            </div>
+          `;
+        });
+      }
+
+      function editCategory(id, name) {
+        document.getElementById("categoryId").value = id;
+        document.getElementById("name").value = name;
+        categoryForm.querySelector("button").textContent = "Cập nhật danh mục";
+      }
+
+      async function deleteCategory(id) {
+        if (confirm("Bạn có chắc muốn xoá danh mục này không?")) {
+          await axios.delete(`${api}/${id}`, {
+            headers: { Authorization: token }
+          });
+          loadCategories();
+        }
+      }
+
+      categoryForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const id = document.getElementById("categoryId").value;
+        const name = document.getElementById("name").value;
+
+        if (id) {
+          await axios.put(`${api}/${id}`, { name }, {
+            headers: { Authorization: token }
+          });
+        } else {
+          await axios.post(api, { name }, {
+            headers: { Authorization: token }
+          });
+        }
+
+        categoryForm.reset();
+        document.getElementById("categoryId").value = "";
+        categoryForm.querySelector("button").textContent = "Thêm danh mục";
+        loadCategories();
+      });
+
+      loadCategories();

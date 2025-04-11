@@ -1,0 +1,84 @@
+doctype html
+html(lang="vi")
+  head
+    meta(charset="UTF-8")
+    title Cửa Hàng Bánh Kem
+    link(rel="stylesheet", href="/index.css")
+    link(href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap", rel="stylesheet")
+    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css")
+  
+  body
+    .container
+      <!-- Header Section -->
+      header
+        .header-top
+          .logo
+            img(src="https://png.pngtree.com/thumb_back/fw800/background/20211002/pngtree-cake-of-strawberry-image_909353.png", alt="Logo")
+          .contact-info
+            .info-item
+              i(class="fas fa-phone-alt") <!-- Icon điện thoại -->
+              p Hotline: 00000000
+            .info-item
+              i(class="fas fa-map-marker-alt") <!-- Icon địa chỉ -->
+              p Địa chỉ: TP Thủ Đức, TP HCM, Vietnam
+            .info-item
+              i(class="fas fa-clock") <!-- Icon giờ làm việc -->
+              p Giờ làm việc: T2 - CN từ 6h00 đến 22h00
+        .nav-bar
+          a(href="/", class="menu-item") Trang chủ
+          a(href="/products", class="menu-item") Sản phẩm
+          a(href="/blog", class="menu-item") Blog Bánh
+          a(href="/about", class="menu-item") Giới thiệu
+          a(href="/contact", class="menu-item") Liên hệ
+
+      <!-- Login/Register and Management Section -->
+      section.menu-management
+        .menu-left
+          a(href="/login-ui", class="menu-item")
+            p Đăng nhập
+          a(href="/register-ui", class="menu-item")
+            p Đăng ký
+        .menu-right
+          a(href="/product-ui", class="menu-item")
+            p Quản lý sản phẩm
+          a(href="/category-ui", class="menu-item")
+            p Quản lý danh mục
+          a(href="/order-ui", class="menu-item")
+            p Quản lý đơn hàng
+          a(href="/feedback-ui", class="menu-item")
+            p Quản lý phản hồi
+          a(href="/blog-ui", class="menu-item")
+            p Quản lý blog
+          a(href="/warehouse-ui", class="menu-item")
+            p Quản lý kho
+
+      <!-- Main Banner Section -->
+      .main-banner1
+        .banner-left
+          img(src="https://theme.hstatic.net/1000239130/1000720392/14/slider_1.jpg?v=61", alt="Khuyến mãi bánh kem")
+        .banner-right
+          section.featured-categories
+            h2 Danh mục nổi bật
+            .category-list
+              each category in categories
+                .category-item
+                  p= category.name
+
+      <!-- Featured Products Section -->
+      section.featured-products
+        h2 Sản phẩm nổi bật
+        .product-list
+          each product in products
+            .product-item
+              img(src=product.image, alt=product.name)
+              p= product.name
+              p Giá: #{product.price}đ
+              a(href="/product/#{product.slug}", class="btn-buy") Xem chi tiết
+
+      <!-- Footer Section -->
+      footer
+        .footer-content
+          p &copy; 2025 Cửa Hàng Bánh Kem.
+        .footer-contact
+          p Liên hệ: 0000000000
+          p Email: info@nhomchungminhne.com
